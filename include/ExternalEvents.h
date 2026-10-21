@@ -20,9 +20,6 @@ namespace DCURSES {
     std::vector<ExternalEvent> GetExternalEvents();
     void ClearExternalEvents();
 
-    // Asks listening mods to register. Sent a few seconds after load.
-    void RequestExternalEvents();
-
     // Fires DCurses_RunExternalEvent, then the normal DCurses_EventTriggered notice.
     void RunExternalEvent(std::string id, std::string displayName, bool isBoss, std::string contName, RE::Actor* actor);
 }

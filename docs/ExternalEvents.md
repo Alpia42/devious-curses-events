@@ -39,16 +39,6 @@ EndFunction
 
 `DCurses_UnregisterEvent` with the same id removes it. A weight of `0` does the same.
 
-Natives on `DCursesLib`:
-
-```papyrus
-DCursesLib.RegisterExternalEvent("MyCurse~My Curse", EventWeight)
-DCursesLib.UnregisterExternalEvent("MyCurse")
-DCursesLib.GetExternalEventWeight("MyCurse") ; -1 if missing
-```
-
-`SendModEvent` does not need a recompiled `DCursesLib`.
-
 ## Run
 
 When the bucket is picked, it counts as the roll.

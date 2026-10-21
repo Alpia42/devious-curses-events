@@ -138,13 +138,6 @@ namespace DCURSES {
         log::info("Cleared external events.");
     }
 
-    void RequestExternalEvents() {
-        log::info("Requesting external events.");
-        auto request = CustomModEvent("DCurses_RequestEvents");
-        request.PushString("refresh");
-        request.Send();
-    }
-
     void RunExternalEvent(std::string id, std::string displayName, bool isBoss, std::string contName, RE::Actor* actor) {
         log::info("Ran external event {} ({}) from '{}'", id, displayName, contName);
         auto run = CustomModEvent("DCurses_RunExternalEvent");

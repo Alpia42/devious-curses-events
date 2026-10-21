@@ -524,6 +524,8 @@ namespace DCURSES {
             else if (event == "removeallrestraints") {
                 RemoveAllRestraints(player);
             }
+            else if (event == "requestevents" || event == "runexternalevent" || event == "eventtriggered") {
+            }
             else if (event == "removealloppressive") {
                 RE::TESObjectARMO* summoner_collar = StaticDataHolder::GetSingleton()->LookupForm<RE::TESObjectARMO>(SUMMONER_COLLAR, "Devious Curses.esp");
                 RE::TESObjectARMO* latex = StaticDataHolder::GetSingleton()->LookupForm<RE::TESObjectARMO>(LIVING_LATEX, "Devious Curses.esp");

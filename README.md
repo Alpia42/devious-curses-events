@@ -8,4 +8,4 @@ See [docs/ExternalEvents.md](docs/ExternalEvents.md) for the events, the id rule
 
 ## Install
 
-This is a DLL. Replace `DeviousCurses.dll` in the installed Devious Curses mod and keep the original plugin. Recompile `DCurses_MCM.psc` if you want the External Events page.
+This is a DLL. Replace `DeviousCurses.dll` in the installed Devious Curses mod and keep the original plugin. Recompile `DCurses_MCM.psc`. That script sends `DCurses_RequestEvents` on reload, and it adds the External Events page.
