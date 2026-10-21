@@ -1,5 +1,7 @@
 #include "Events.h"
 
+#include <functional>
+
 //#pragma warning(4:4061)
 
 #include "tats.h"
@@ -10,6 +12,7 @@
 #include "Contraptions.h"
 #include "OppDevices.h"
 #include "ModEvents.h"
+#include "ExternalEvents.h"
 #include "Settings.h"
 #include "Serializer.h"
 #include "Scripting.h"
@@ -724,18 +727,38 @@ namespace DCURSES {
            return false;
         }, settings->eventStandardWeight });
 
-        Util::ShuffleVector(events);
+        std::vector<std::function<bool(bool, std::string, RE::Actor*)>> runners;
+        std::vector<std::pair<int, double>> rolls;
+        runners.reserve(events.size() + 8);
+        for (auto& entry : events) {
+            runners.push_back(entry.first);
+            rolls.push_back({ static_cast<int>(runners.size() - 1), entry.second });
+        }
+        for (const auto& external : GetExternalEvents()) {
+            if (external.weight <= 0) {
+                continue;
+            }
+            auto id = external.id;
+            auto displayName = external.displayName;
+            runners.push_back([id, displayName](bool isBoss, std::string contName, RE::Actor* player) {
+                RunExternalEvent(id, displayName, isBoss, contName, player);
+                return true;
+            });
+            rolls.push_back({ static_cast<int>(runners.size() - 1), external.weight });
+        }
 
-        while (!events.empty()) {
-            auto pair = Util::VectorSelectWeighted(events);
+        Util::ShuffleVector(rolls);
+
+        while (!rolls.empty()) {
+            auto pair = Util::VectorSelectWeighted(rolls);
             if (!pair.has_value()) {
                 log::error("No valid event triggered!");
                 return false;
             }
-            if (pair.value().first(isBoss, contName, player)) {
+            if (runners[pair.value().first](isBoss, contName, player)) {
                 return true;
             }
-            events.erase(std::remove(events.begin(), events.end(), pair), events.end());
+            rolls.erase(std::remove(rolls.begin(), rolls.end(), pair.value()), rolls.end());
         }
 
         log::error("No valid event triggered!");

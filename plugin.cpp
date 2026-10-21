@@ -20,6 +20,7 @@ add stuff
 #include "DebugMode.h"
 #include "MGEF_Controller.h"
 #include "Events.h"
+#include "ExternalEvents.h"
 #include "Themes.h"
 #include "Translation.h"
 #include "Consequences.h"
@@ -182,11 +183,46 @@ namespace DCURSES {
         return GetOppDeviceMask();
     }
 
+    void P_RegisterExternalEvent(RE::StaticFunctionTag*, RE::BSFixedString id, float weight) {
+        RegisterExternalEvent(std::string(id.c_str()), weight);
+    }
+
+    void P_UnregisterExternalEvent(RE::StaticFunctionTag*, RE::BSFixedString id) {
+        UnregisterExternalEvent(std::string(id.c_str()));
+    }
+
+    float P_GetExternalEventWeight(RE::StaticFunctionTag*, RE::BSFixedString id) {
+        return static_cast<float>(GetExternalEventWeight(std::string(id.c_str())));
+    }
+
+    int P_GetExternalEventCount(RE::StaticFunctionTag*) {
+        return GetExternalEventCount();
+    }
+
+    RE::BSFixedString P_GetExternalEventId(RE::StaticFunctionTag*, int index) {
+        return GetExternalEventAt(index).id;
+    }
+
+    RE::BSFixedString P_GetExternalEventName(RE::StaticFunctionTag*, int index) {
+        return GetExternalEventAt(index).displayName;
+    }
+
+    float P_GetExternalEventWeightAt(RE::StaticFunctionTag*, int index) {
+        return static_cast<float>(GetExternalEventAt(index).weight);
+    }
+
     bool PapyrusFunctions(RE::BSScript::IVirtualMachine* ivm) {
         ivm->RegisterFunction("GetRandomEquipableDevice", "DCursesLib", P_GetRandomEquipableDevice);
+        ivm->RegisterFunction("RegisterExternalEvent", "DCursesLib", P_RegisterExternalEvent);
+        ivm->RegisterFunction("UnregisterExternalEvent", "DCursesLib", P_UnregisterExternalEvent);
+        ivm->RegisterFunction("GetExternalEventWeight", "DCursesLib", P_GetExternalEventWeight);
         ivm->RegisterFunction("NumDevicesVisible", "DCursesLib", P_numDevicesVisible);
         ivm->RegisterFunction("NumDevicesEquipped", "DCursesLib", P_numDevicesEquipped);
         ivm->RegisterFunction("WearingOppressiveDevice", "DCurses_MCM", P_WearingOppressiveDevice);
+        ivm->RegisterFunction("GetExternalEventCount", "DCurses_MCM", P_GetExternalEventCount);
+        ivm->RegisterFunction("GetExternalEventId", "DCurses_MCM", P_GetExternalEventId);
+        ivm->RegisterFunction("GetExternalEventName", "DCurses_MCM", P_GetExternalEventName);
+        ivm->RegisterFunction("GetExternalEventWeightAt", "DCurses_MCM", P_GetExternalEventWeightAt);
         PapyrusFunctionsSettigns(ivm);
         Quest::PapyrusFunctionsSettigns(ivm);
         PapyrusFunctionsSex(ivm);
@@ -313,6 +349,7 @@ SKSEPluginLoad(const SKSE::LoadInterface *skse) {
             RecalculateDeviceLists();
             MCMSetHelpPageOptions();
             ScriptingManager().MCMRegisterModEvents();
+            ClearExternalEvents();
 
             Serialized::GetCounters()->clock_SexTimeout -= 2;
            

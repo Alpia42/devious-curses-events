@@ -1,5 +1,11 @@
-# Devious Curses NG
+# Devious Curses External Events
 
-Source code for the mod [Devious Curses NG](https://www.loverslab.com/files/file/41083-devious-curses-ng/) hosted on LoversLab.
+A fork of [Devious Curses NG](https://www.loverslab.com/files/file/41083-devious-curses-ng/) that lets other mods add a weighted bucket to the chest, door, and body roll. Devious Curses still decides whether anything fires. A registered event only competes with the built-in weights.
 
-If you are looking for how to make a SKSE mod or an example of how to build this project, I highly recommend looking at [this tutorial.](https://github.com/SkyrimScripting/SKSE_Template_HelloWorld)
+Version 0.10.0. The original release is 0.9.0.
+
+See [docs/ExternalEvents.md](docs/ExternalEvents.md) for the events, the id rules, and a Papyrus example.
+
+## Install
+
+This is a DLL. Replace `DeviousCurses.dll` in the installed Devious Curses mod and keep the original plugin. Recompile `DCurses_MCM.psc` if you want the External Events page.

@@ -9,6 +9,7 @@
 #include "Devices.h"
 #include "Scripting.h"
 #include "OppDevices.h"
+#include "ExternalEvents.h"
 #include "Tats.h"
 #include "MGEF_Controller.h"
 #include "Translation.h"
@@ -405,6 +406,12 @@ namespace DCURSES {
                     log::warn("Bad ModEvent strArg: {}", strArg);
                     return RE::BSEventNotifyControl::kContinue;
                 }
+            }
+            else if (event == "registerevent") {
+                RegisterExternalEvent(modEvent->strArg.c_str(), modEvent->numArg);
+            }
+            else if (event == "unregisterevent") {
+                UnregisterExternalEvent(modEvent->strArg.c_str());
             }
             else if (event == "setlewdmark") {
                 auto lewdMarkCounters = Serialized::GetLewdMarkCounters();

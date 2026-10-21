@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Set your project name. This will be the name of your SKSE .dll file.
-project(DeviousCurses VERSION 0.9.0 LANGUAGES CXX)
+project(DeviousCurses VERSION 0.10.0 LANGUAGES CXX)
 
 
 set(sources
@@ -13,6 +13,7 @@ set(sources
         src/DebugMode.cpp
         src/Devices.cpp
         src/Events.cpp
+        src/ExternalEvents.cpp
         src/FastTravel.cpp
         src/Locations.cpp
         src/MGEF_Controller.cpp
@@ -29,17 +30,13 @@ set(sources
         src/Translation.cpp
         src/Utils.cpp
         src/Sex.cpp
-
-        src/Quest/Radiant.cpp
-        src/Quest/QuestSettings.cpp
-        src/Quest/QuestEvents.cpp
-        src/Quest/Serialized.cpp
+        src/Quest/Stubs.cpp
 )
 
 
 
-set(OUTPUT_FOLDER "S:/Skyrim/MO2/mods/DeviousCurses")
-set(QUEST_OUTPUT_FOLDER "S:/Skyrim/MO2/mods/DeviousCursesQuests")
+set(OUTPUT_FOLDER "" CACHE PATH "MO2 mod folder to copy DeviousCurses.dll into. Leave empty to skip the copy.")
+set(QUEST_OUTPUT_FOLDER "" CACHE PATH "Unused unless the quest MCM target is enabled.")
 
 # set(CommonLibSSE_DIR "S:/Skyrim/modding/CommonLibVR/build/debug-msvc-vcpkg-all")
 
@@ -59,48 +56,16 @@ set(SKYRIM_FOLDER "S:/SteamLibrary/steamapps/common/Skyrim Special Edition") # C
 set(SCRIPTS_SOURCE "${CMAKE_SOURCE_DIR}/SourceScripts/")
 
 
-add_custom_command(
-    TARGET "${PROJECT_NAME}"
-    POST_BUILD
-    COMMAND "${CMAKE_COMMAND}" -E make_directory "${OUTPUT_FOLDER}/SKSE/Plugins"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:${PROJECT_NAME}>" "${OUTPUT_FOLDER}/SKSE/Plugins/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-    
-    VERBATIM
-)
+if(OUTPUT_FOLDER)
+    add_custom_command(
+        TARGET "${PROJECT_NAME}"
+        POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${OUTPUT_FOLDER}/SKSE/Plugins"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:${PROJECT_NAME}>" "${OUTPUT_FOLDER}/SKSE/Plugins/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+        VERBATIM
+    )
+endif()
 
-add_custom_target(
-    Codegen ALL
-    COMMENT "Running Python Codegen"
-    COMMAND python CODEGEN.py
-    WORKING_DIRECTORY ./../../
-    VERBATIM
-)
-add_dependencies(${PROJECT_NAME} Codegen)
-
-add_custom_target(
-    MCM ALL
-    COMMENT "Compiling MCM"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${CMAKE_SOURCE_DIR}/DCurses_MCM.psc" "${OUTPUT_FOLDER}/scripts/source/DCurses_MCM.psc"
-    COMMAND "${SKYRIM_FOLDER}/Papyrus Compiler/PapyrusCompiler.exe" DCurses_MCM.psc -f="${SKYRIM_FOLDER}/Data/Scripts/Source/TESV_Papyrus_Flags.flg" -i="${SCRIPTS_SOURCE}\;${SKYRIM_FOLDER}/Data/Scripts/Source/" -o="${OUTPUT_FOLDER}/scripts" -q
-    WORKING_DIRECTORY "${OUTPUT_FOLDER}/scripts/source"
-)
-add_dependencies(MCM Codegen)
-
-add_custom_target(
-    QuestMCM ALL
-    COMMENT "Compiling Quest MCM"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${CMAKE_SOURCE_DIR}/DCurses_QuestMCM.psc" "${QUEST_OUTPUT_FOLDER}/scripts/source/DCurses_QuestMCM.psc"
-    COMMAND "${SKYRIM_FOLDER}/Papyrus Compiler/PapyrusCompiler.exe" DCurses_QuestMCM.psc -f="${SKYRIM_FOLDER}/Data/Scripts/Source/TESV_Papyrus_Flags.flg" -i="${SCRIPTS_SOURCE}\;${SKYRIM_FOLDER}/Data/Scripts/Source\;${OUTPUT_FOLDER}/scripts/source/" -o="${QUEST_OUTPUT_FOLDER}/scripts" -q
-    WORKING_DIRECTORY "${QUEST_OUTPUT_FOLDER}/scripts/source"
-)
-add_dependencies(QuestMCM Codegen)
-
-add_custom_target(
-    Translations ALL
-    COMMENT "Preparing Translation Files"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${CMAKE_SOURCE_DIR}/translationData/Devious Curses_English.json" "${OUTPUT_FOLDER}/translations/Devious Curses_ENGLISH.json"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${CMAKE_SOURCE_DIR}/translationData/Devious Curses_English.txt" "${OUTPUT_FOLDER}/interface/translations/Devious Curses_ENGLISH.txt"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${CMAKE_SOURCE_DIR}/translationData/Devious Curses - Quests_English.txt" "${QUEST_OUTPUT_FOLDER}/interface/translations/Devious Curses - Quests_ENGLISH.txt"
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${CMAKE_SOURCE_DIR}/Version.txt" "${OUTPUT_FOLDER}/Version.txt"
-)
-add_dependencies(Translations Codegen)
+# Codegen, MCM compile, and translation copy targets need files that are not in this repo
+# (DCurses_MCM.psc, translationData, the author's SourceScripts layout). They are omitted
+# so a DLL-only build can succeed. The event-roll bridge does not need them.
