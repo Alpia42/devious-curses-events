@@ -81,8 +81,7 @@ namespace DCURSES {
 		for (int i = 0; i < 100; i++) {
 			auto dev = GetRandomEquipableDevice(player, usedKeys, theme);
 			if (dev) {
-				//return true;
-				continue;
+				return true;
 			}
 		}
 
