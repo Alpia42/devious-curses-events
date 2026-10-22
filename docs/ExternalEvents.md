@@ -27,7 +27,7 @@ Event OnGameReload()
     SendModEvent("DCurses_RegisterEvent", "MyCurse~My Curse", EventWeight)
 EndEvent
 
-Event OnDCRequestEvents(String reason)
+Event OnDCRequestEvents(string eventName, string strArg, float numArg, Form sender)
     SendModEvent("DCurses_RegisterEvent", "MyCurse~My Curse", EventWeight)
 EndEvent
 
