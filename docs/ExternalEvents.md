@@ -41,7 +41,7 @@ EndFunction
 
 ## Run
 
-When the bucket is picked, it counts as the roll.
+When the bucket is picked, it counts as the roll. `DCurses_RunExternalEvent` is sent to every listener, so ignore an id that is not yours.
 
 ```papyrus
 Event OnDCRunExternal(String eventId, String containerName, Bool isBoss, Form akActor)
