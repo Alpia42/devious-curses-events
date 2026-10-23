@@ -152,16 +152,17 @@ namespace DCURSES {
 
 		std::ifstream i(EXCLUSIONS_FILE);
 
+		std::vector<std::string> result;
 		try {
 			i >> j;
+			result = j.get<std::vector<std::string>>();
 		}
 		catch (...) {
-			log::error("Exclusions file has garbled data.");
+			log::warn("Exclusions file has garbled data or is not a list of strings.");
 			return std::vector<std::string>();
 		}
 
-
-		return j.get<std::vector<std::string>>();
+		return result;
 	}
 
 	std::vector<std::string> GetModExclusions() {
@@ -171,16 +172,17 @@ namespace DCURSES {
 
 		std::ifstream i(MOD_EXCLUSIONS_FILE);
 
+		std::vector<std::string> result;
 		try {
 			i >> j;
+			result = j.get<std::vector<std::string>>();
 		}
 		catch (...) {
-			log::error("Exclusions file has garbled data.");
+			log::warn("Exclusions file has garbled data or is not a list of strings.");
 			return std::vector<std::string>();
 		}
 
-
-		return j.get<std::vector<std::string>>();
+		return result;
 	}
 
 	bool ProcessDevice(DeviceData dev, std::vector<std::string> exclusions, std::vector<RE::TESFile*> mod_exclusions) {

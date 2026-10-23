@@ -3,7 +3,7 @@
 namespace DCURSES {
 	void CreateThemesFileIfNeeded();
 
-	std::string GetRandomTheme();
+	std::string GetRandomTheme(RE::Actor* actor, std::set<std::string> usedKeys);
 
-	bool TestTheme(std::string theme, std::vector<std::string> skipKeywords = {});
+	bool TestTheme(std::string theme, RE::Actor* actor, std::set<std::string> usedKeys);
 }

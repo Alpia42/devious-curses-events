@@ -31,21 +31,21 @@ namespace DCURSES {
 			o << std::setw(4) << j << std::endl;
 		}
 	}
-	std::string GetRandomTheme() {
+	std::string GetRandomTheme(RE::Actor* actor, std::set<std::string> usedKeys) {
 		CreateThemesFileIfNeeded();
 
 		nlohmann::json j = nlohmann::json::array();
 		std::ifstream i(THEMES_FILE);
 
+		std::vector<std::string> themes;
 		try {
 			i >> j;
+			themes = j.get<std::vector<std::string>>();
 		}
 		catch (...) {
-			log::error("Themes file has garbled data.");
+			log::warn("Themes file has garbled data or is not a list of strings.");
 			return "";
 		}
-
-		auto themes = j.get<std::vector<std::string>>();
 
 		if (themes.size() == 0) {
 			log::warn("Unable to find theme.");
@@ -55,7 +55,7 @@ namespace DCURSES {
 		Util::ShuffleVector(themes);
 
 		for (auto theme : themes) {
-			if (TestTheme(theme)) {
+			if (TestTheme(theme, actor, usedKeys)) {
 				log::info("Got random theme {}", theme);
 				return theme;
 			}
@@ -66,25 +66,9 @@ namespace DCURSES {
 	}
 
 
-	bool TestTheme(std::string theme, std::vector<std::string> skipKeywords) {
-		RE::Actor* player = RE::PlayerCharacter::GetSingleton();
-
-		std::string device_names = "";
-		std::string device_ids = "";
-
-		std::set<std::string> usedKeys = GetKeywordsCantEquip(player);
-
-		for (auto kw : skipKeywords) {
-			usedKeys.insert(kw);
-		}
-
-		for (int i = 0; i < 100; i++) {
-			auto dev = GetRandomEquipableDevice(player, usedKeys, theme);
-			if (dev) {
-				return true;
-			}
-		}
-
-		return false;
+	// usedKeys must be the same set the equip loop uses. One call is enough: the weighted pick only
+	// chooses from lists that still have a device matching the theme.
+	bool TestTheme(std::string theme, RE::Actor* actor, std::set<std::string> usedKeys) {
+		return GetRandomEquipableDevice(actor, usedKeys, theme).has_value();
 	}
 }

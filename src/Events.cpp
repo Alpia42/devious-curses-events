@@ -103,7 +103,7 @@ namespace DCURSES {
         if (count < minDevices) { count = minDevices; }
 
         if (theme.empty() && settings->useThemes) {
-            theme = GetRandomTheme();
+            theme = GetRandomTheme(actor, usedKeys);
         }
 
         auto sex = SexLab::GetSex(actor);
