@@ -23,7 +23,7 @@ with open(r"Version.txt", "w") as f:
 
 #MCM CODEGEN
 
-def FullMCMFileGeneration(header_filename, source_filename, output_filename, translations_filename, Head):
+def FullMCMFileGeneration(header_filename, source_filename, output_filename, translations_filename, Head, extra_pages=None, output_newline=None):
 
 	settings_h_raw = open(header_filename, "r").read()
 	settings = settings_h_raw.split("//MCM_START")[1].split("//MCM_END")[0]
@@ -228,6 +228,18 @@ def FullMCMFileGeneration(header_filename, source_filename, output_filename, tra
 
 		page_data.append([page_key, page_lines])
 
+	# Hand-written pages (not driven by Settings.h). They go before the LOCKED page so
+	# their Pages[] index stays inside the array that Initialize() allocates.
+	if extra_pages:
+		insert_at = len(page_data)
+		for i, page in enumerate(page_data):
+			if page[0] == "$DCURSES_PAGE_LOCKED":
+				insert_at = i
+				break
+		for extra in extra_pages:
+			page_data.insert(insert_at, extra)
+			insert_at += 1
+
 	pre_page = settings.split("//Page")[0]
 	pages_flags = []
 	for line in [x.strip() for x in pre_page.split('\n')[1:]]:
@@ -387,7 +399,7 @@ def FullMCMFileGeneration(header_filename, source_filename, output_filename, tra
 			SetupMenuStrings += f'\n\t{x[0]}List[{n}] = "{x[2][n]}"'
 	SetupMenuStrings += "\nEndFunction"
 
-	with open(output_filename, "w") as f:
+	with open(output_filename, "w", newline=output_newline) as f:
 		f.write(Head)
 		f.write(Defs)
 		f.write(ConfigInit)
@@ -412,6 +424,7 @@ def FullMCMFileGeneration(header_filename, source_filename, output_filename, tra
 	parse = lambda x, y: f'{x}\t{y} \n'
 	MCMTranslationData += ''.join([parse(x, y) for x, y in mcm_strings.items()])
 
+	os.makedirs(os.path.dirname(translations_filename) or ".", exist_ok=True)
 	with open(translations_filename, "w", encoding='utf-16') as f:
 		f.write(MCMTranslationData)
 
@@ -567,6 +580,11 @@ bool function CheckLM() global Native
 
 bool function WearingOppressiveDevice() global Native
 
+int function GetExternalEventCount() global native
+string function GetExternalEventId(int index) global native
+string function GetExternalEventName(int index) global native
+float function GetExternalEventWeightAt(int index) global native
+
 String Property LastPage = "Main" Auto Hidden
 
 Function RegisterModEvents()
@@ -612,9 +630,34 @@ Event OnDhlpResume( string eventName, string strArg, float numArg, Form sender )
 	ModSuspended = False
 EndEvent
 
+Event OnGameReload()
+	Parent.OnGameReload()
+	SendModEvent("DCurses_RequestEvents", "refresh")
+EndEvent
+
 """
 
-FullMCMFileGeneration(r"include\Settings.h", r"src\Settings.cpp", "DCurses_MCM.psc", "translationData/Devious Curses_ENGLISH.txt", Head)
+# External Events page. Read-only list of what other mods registered with the DLL.
+# Lines are emitted inside OnPageReset with two leading tabs; nested lines carry their own extra tabs.
+ExternalEventsPage = ["External Events", [
+	'AddHeaderOption("Registered event mods")',
+	'int externalCount = GetExternalEventCount()',
+	'If externalCount <= 0',
+	'\tAddTextOption("None registered", "", 1)',
+	'Else',
+	'\tint externalIndex = 0',
+	'\tWhile externalIndex < externalCount',
+	'\t\tstring externalName = GetExternalEventName(externalIndex)',
+	'\t\tstring externalId = GetExternalEventId(externalIndex)',
+	'\t\tint externalWeight = GetExternalEventWeightAt(externalIndex) as int',
+	'\t\tAddTextOption(externalName, externalId + "  " + externalWeight, 1)',
+	'\t\texternalIndex += 1',
+	'\tEndWhile',
+	'EndIf',
+]]
+
+# Written to SourceScripts/ with CRLF endings to match the committed script on any OS.
+FullMCMFileGeneration("include/Settings.h", "src/Settings.cpp", "SourceScripts/DCurses_MCM.psc", "translationData/Devious Curses_ENGLISH.txt", Head, extra_pages=[ExternalEventsPage], output_newline="\r\n")
 
 
 Head = """;THIS SCRIPT IS AUTO GENERATED
@@ -627,13 +670,18 @@ function OnMCMOpened() global Native
 String Property LastPage = "Main" Auto Hidden
 """
 
-FullMCMFileGeneration(r"include\Quest\QuestSettings.h", r"src\Quest\QuestSettings.cpp", "DCurses_QuestMCM.psc", "translationData/Devious Curses - Quests_ENGLISH.txt", Head)
+# The quest sources are not in this repo (src/Quest/Stubs.cpp). Skip instead of crashing,
+# so the device and translation codegen below still runs.
+if os.path.exists("include/Quest/QuestSettings.h") and os.path.exists("src/Quest/QuestSettings.cpp"):
+	FullMCMFileGeneration("include/Quest/QuestSettings.h", "src/Quest/QuestSettings.cpp", "DCurses_QuestMCM.psc", "translationData/Devious Curses - Quests_ENGLISH.txt", Head)
+else:
+	print("Skipping quest MCM codegen: quest sources not present.")
 
 
 #DeviceListNames
 
-devices_raw = open(r"src\Devices.cpp", "r").read()
-devices_h_raw = open(r"include\Devices.h", "r").read()
+devices_raw = open("src/Devices.cpp", "r").read()
+devices_h_raw = open("include/Devices.h", "r").read()
 
 device_names = [x.split(" ")[1].strip() for x in devices_h_raw.split("class Devices {")[1].split("void ClearLists();")[0].replace(";", "").split("\n")[0:-1] if x.strip().startswith("DeviceList")]
 
@@ -660,13 +708,13 @@ mid = ''.join(parse(x) for x in device_names)
 
 devices_raw = pre + mid + post
 
-with open(r"src\Devices.cpp", "w") as f:
+with open("src/Devices.cpp", "w") as f:
 	f.write(devices_raw)
 
 
 # TRANSLATIONS CODEGEN
 
-translations_h_raw = open(r"include\Translation.h", "r").read()
+translations_h_raw = open("include/Translation.h", "r").read()
 translations = translations_h_raw.split("//TRNASLATIONS_START")[1].split("//TRNASLATIONS_END")[0].strip()
 translation_map = dict()
 for line in [x.strip() for x in translations.split('\n')]:
@@ -694,6 +742,6 @@ mid = ''.join(parse(x) for x in translation_map.keys())
 
 translations_raw = pre + mid + post
 
-with open(r"src\Translation.cpp", "w") as f:
+with open("src/Translation.cpp", "w") as f:
 	f.write(translations_raw)
 
