@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Set your project name. This will be the name of your SKSE .dll file.
-project(DeviousCurses VERSION 0.10.0 LANGUAGES CXX)
+project(DeviousCurses VERSION 0.10.1 LANGUAGES CXX)
 
 
 set(sources

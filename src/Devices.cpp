@@ -157,8 +157,8 @@ namespace DCURSES {
 			i >> j;
 			result = j.get<std::vector<std::string>>();
 		}
-		catch (...) {
-			log::warn("Exclusions file has garbled data or is not a list of strings.");
+		catch (const std::exception& e) {
+			log::warn("Exclusions file {} has garbled data or is not a list of strings: {}", EXCLUSIONS_FILE, e.what());
 			return std::vector<std::string>();
 		}
 
@@ -177,8 +177,8 @@ namespace DCURSES {
 			i >> j;
 			result = j.get<std::vector<std::string>>();
 		}
-		catch (...) {
-			log::warn("Exclusions file has garbled data or is not a list of strings.");
+		catch (const std::exception& e) {
+			log::warn("Exclusions file {} has garbled data or is not a list of strings: {}", MOD_EXCLUSIONS_FILE, e.what());
 			return std::vector<std::string>();
 		}
 
@@ -1024,7 +1024,7 @@ namespace DCURSES {
 				if (keyword == "zad_DeviousHarness") {
 					lists.push_back(std::pair(&devices->harnessesOpen, settings->slaveHarnessWeight));
 					lists.push_back(std::pair(&devices->corsetsNoBelt, settings->corsetWeight));
-					if (std::find(skipList.begin(), skipList.end(), "zad_DeviousBelt") != skipList.end()) { // No Belt
+					if (std::find(skipList.begin(), skipList.end(), "zad_DeviousBelt") == skipList.end()) { // No Belt
 						lists.push_back(std::pair(&devices->harnesses, settings->chastityHarnessWeight));
 						lists.push_back(std::pair(&devices->corsetsBelt, settings->corsetWeight));
 					}

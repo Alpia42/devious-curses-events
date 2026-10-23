@@ -408,7 +408,7 @@ namespace DCURSES {
                 }
             }
             else if (event == "registerevent") {
-                RegisterExternalEvent(modEvent->strArg.c_str(), modEvent->numArg);
+                RegisterExternalEvent(modEvent->strArg.c_str(), modEvent->numArg, modEvent->sender);
             }
             else if (event == "unregisterevent") {
                 UnregisterExternalEvent(modEvent->strArg.c_str());

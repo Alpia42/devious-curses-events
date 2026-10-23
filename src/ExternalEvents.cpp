@@ -5,6 +5,7 @@
 #include "Utils.h"
 
 #include <algorithm>
+#include <cmath>
 #include <mutex>
 
 using namespace SKSE;
@@ -17,7 +18,7 @@ namespace DCURSES {
         bool IsReservedId(const std::string& id) {
             static const char* reserved[] = {
                 "bondage", "oppressive", "oppresive", "contraption", "tattoo", "mark",
-                "simpleslavery", "wicked", "wickeddevice", "lewdmark",
+                "simpleslavery", "wicked", "wickeddevice", "wickeddevices", "lewdmark",
                 "abadon", "abadonplug", "abadonset", "abadonwarrior", "abadonscout", "abadonwitch",
                 "external"
             };
@@ -46,13 +47,22 @@ namespace DCURSES {
             }
             return true;
         }
+
+        std::string GetOwner(RE::TESForm* sender) {
+            auto file = sender ? sender->GetFile(0) : nullptr;
+            return file ? std::string(file->GetFilename()) : "unknown";
+        }
     }
 
-    bool RegisterExternalEvent(std::string spec, double weight) {
+    bool RegisterExternalEvent(std::string spec, double weight, RE::TESForm* sender) {
         std::string id;
         std::string displayName;
         if (!ParseSpec(spec, id, displayName)) {
             log::warn("Rejected external event '{}'. Use an id of letters, numbers, '_' or '-', optionally '~display name'. Built-in names are reserved.", spec);
+            return false;
+        }
+        if (!std::isfinite(weight)) {
+            log::warn("Rejected external event '{}'. The weight is not a finite number.", id);
             return false;
         }
         if (weight <= 0) {
@@ -63,19 +73,26 @@ namespace DCURSES {
             weight = 10000;
         }
 
+        auto owner = GetOwner(sender);
         {
             std::lock_guard<std::mutex> lock(g_externalMutex);
             auto it = std::find_if(g_externalEvents.begin(), g_externalEvents.end(), [&](const ExternalEvent& event) {
                 return event.id == id;
             });
             if (it != g_externalEvents.end()) {
+                if (owner != "unknown" && it->owner != "unknown" && owner != it->owner) {
+                    log::warn("External event '{}' from {} replaces the one registered by {}. Use a different id if both should exist.", id, owner, it->owner);
+                }
                 it->displayName = displayName;
                 it->weight = weight;
-                log::info("Updated external event '{}' weight {:.0f}.", id, weight);
+                if (owner != "unknown") {
+                    it->owner = owner;
+                }
+                log::info("Updated external event '{}' weight {:.0f} ({}).", id, weight, it->owner);
             }
             else {
-                g_externalEvents.push_back({ id, displayName, weight });
-                log::info("Registered external event '{}' weight {:.0f}.", id, weight);
+                g_externalEvents.push_back({ id, displayName, weight, owner });
+                log::info("Registered external event '{}' weight {:.0f} ({}).", id, weight, owner);
             }
         }
         return true;

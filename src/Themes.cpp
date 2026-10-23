@@ -42,8 +42,8 @@ namespace DCURSES {
 			i >> j;
 			themes = j.get<std::vector<std::string>>();
 		}
-		catch (...) {
-			log::warn("Themes file has garbled data or is not a list of strings.");
+		catch (const std::exception& e) {
+			log::warn("Themes file {} has garbled data or is not a list of strings: {}", THEMES_FILE, e.what());
 			return "";
 		}
 
@@ -61,7 +61,7 @@ namespace DCURSES {
 			}
 		}
 
-		log::trace("Unable to find theme based on equipped devices.");
+		log::info("No theme fits the free slots on {}. The event proceeds without a theme.", actor ? actor->GetName() : "none");
 		return "";
 	}
 

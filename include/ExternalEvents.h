@@ -8,11 +8,13 @@ namespace DCURSES {
         std::string id;
         std::string displayName;
         double weight = 0;
+        std::string owner = "unknown"; // Plugin file of the form that sent the register event.
     };
 
     // Weight <= 0 removes the id. Same id registers again and replaces the weight.
     // Ids are case-insensitive. Optional display name: "mycurse~My Curse".
-    bool RegisterExternalEvent(std::string spec, double weight);
+    // The sender only names the owner for the duplicate id warning; the native call has none.
+    bool RegisterExternalEvent(std::string spec, double weight, RE::TESForm* sender = nullptr);
     bool UnregisterExternalEvent(std::string spec);
     double GetExternalEventWeight(std::string spec);
     int GetExternalEventCount();

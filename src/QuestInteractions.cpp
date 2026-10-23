@@ -131,7 +131,7 @@ namespace DCURSES {
 		auto player = RE::PlayerCharacter::GetSingleton();
 
 		if (
-			DoStandardEvent(player, false, "", "leather & red & (dress | cuffs | boots | gloves | collar)) & !pony", 20, 4, { "zad_DeviousHeavyBondage", "zad_DeviousBondageMittens", "zad_DeviousGag", "zad_DeviousBlindfold" }) ||
+			DoStandardEvent(player, false, "", "leather & red & (dress | cuffs | boots | gloves | collar) & !pony", 20, 4, { "zad_DeviousHeavyBondage", "zad_DeviousBondageMittens", "zad_DeviousGag", "zad_DeviousBlindfold" }) ||
 			DoStandardEvent(player, false, "", "", 20, 4, { "zad_DeviousHeavyBondage", "zad_DeviousBondageMittens", "zad_DeviousGag", "zad_DeviousBlindfold" }) ||
 			DoStandardEvent(player, false, "", "!!", 20, 4, { "zad_DeviousHeavyBondage", "zad_DeviousBondageMittens", "zad_DeviousGag", "zad_DeviousBlindfold" })
 			) {
